@@ -29,19 +29,13 @@ html, body {
 /* This is the scrollable element — not the window */
 .snap-container {
   height: 100vh;
-  overflow-y: scroll;
-  scroll-snap-type: y mandatory;  /* snap to each section */
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; /* hide scrollbar Firefox */
+  overflow: hidden; /* JS lerp engine drives all scrolling */
 }
-.snap-container::-webkit-scrollbar { display: none; } /* hide scrollbar Chrome */
 
 /* ===== SNAP SECTIONS ===== */
 .snap-section {
   height: 100vh;
   width: 100%;
-  scroll-snap-align: start;     /* each section snaps to top */
-  scroll-snap-stop: always;     /* never skip a section */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -100,31 +94,7 @@ nav {
   transition: 0.3s;
 }
 
-/* ===== SIDE DOT NAV ===== */
-.dot-nav {
-  position: fixed;
-  right: 24px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 998;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.4);
-  background: transparent;
-  cursor: pointer;
-  transition: background 0.3s, border-color 0.3s, transform 0.3s;
-  padding: 0;
-}
-.dot.active {
-  background: #fff;
-  border-color: #fff;
-  transform: scale(1.25);
-}
+
 
 /* ===== SHARED SECTION INNER ===== */
 .section-inner {
@@ -228,28 +198,47 @@ nav {
 .education-label { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: var(--ink); margin: 28px 0 10px; }
 .education-item { font-size: 0.92rem; line-height: 1.7; color: var(--ink-light); border-left: 3px solid var(--accent); padding-left: 16px; }
 .about-photo-wrap { display: flex; justify-content: center; }
-.about-photo, .about-photo-placeholder {
+.about-photo-placeholder {
   width: 240px; height: 290px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
+  background: linear-gradient(135deg,#eeeeff,#e0d8ff);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
 }
-.about-photo { object-fit: cover; box-shadow: 0 24px 64px rgba(91,76,245,0.14); display: block; }
-.about-photo-placeholder { background: linear-gradient(135deg,#eeeeff,#e0d8ff); display: flex; align-items: center; justify-content: center; }
+.about-photo {
+  width: 240px; height: 290px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  object-fit: cover;
+  object-position: center top;
+  box-shadow: 0 24px 64px rgba(91,76,245,0.14);
+  display: block;
+  flex-shrink: 0;
+}
 
 /* ===== PROJECTS (section 2) ===== */
 #s2 {
   background: var(--surface);
   align-items: flex-start;
-  overflow-y: auto;
-  scrollbar-width: none;
+  overflow: hidden; /* no manual scroll — carousel handles it */
 }
-#s2::-webkit-scrollbar { display: none; }
-#s2 .section-inner { padding-top: 100px; padding-bottom: 60px; }
+#s2 .section-inner { padding-top: 88px; padding-bottom: 32px; }
+
+/* Carousel track — scrolls horizontally via JS auto-play */
 .projects-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-top: 32px;
+  display: flex;
+  gap: 20px;
+  margin-top: 28px;
+  overflow-x: hidden; /* JS drives scroll, not the user */
+  padding-bottom: 8px;
+  cursor: default;
+}
+
+/* Each card is a fixed width so 2 cards are visible at once */
+.project-card {
+  flex: 0 0 calc(50% - 10px);
+  min-width: 260px;
 }
 .project-card {
   background: #fff;
@@ -259,6 +248,7 @@ nav {
   position: relative;
   overflow: hidden;
   transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+  flex-shrink: 0;
 }
 .project-card::before {
   content: '';
@@ -320,10 +310,8 @@ nav {
 #s4 {
   background: #fff;
   align-items: flex-start;
-  overflow-y: auto;
-  scrollbar-width: none;
+  overflow: hidden;
 }
-#s4::-webkit-scrollbar { display: none; }
 #s4 .section-inner { padding-top: 100px; padding-bottom: 60px; }
 .contact-grid {
   display: grid;
@@ -371,7 +359,7 @@ footer span { color: var(--accent); }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 900px) {
-  .projects-grid { grid-template-columns: repeat(2, 1fr); }
+  .project-card { flex: 0 0 calc(60% - 10px); }
 }
 @media (max-width: 768px) {
   nav { padding: 0 20px; }
@@ -388,14 +376,46 @@ footer span { color: var(--accent); }
   .nav-links.open { display: flex; }
   .nav-menu-btn { display: flex; }
   .dot-nav { right: 12px; }
-  .about-inner { grid-template-columns: 1fr; gap: 32px; }
-  .about-photo-wrap { order: -1; }
+  .about-inner { grid-template-columns: 1fr; gap: 28px; }
+  .about-photo-wrap { order: -1; display: flex; justify-content: center; }
+  .about-photo, .about-photo-placeholder { width: 180px; height: 220px; }
   .lang-grid { grid-template-columns: repeat(3, 1fr); }
   .contact-grid { grid-template-columns: 1fr; }
-  .projects-grid { grid-template-columns: 1fr; }
+  .project-card { flex: 0 0 85vw; }
   .section-inner { padding: 0 20px; }
   #s2 .section-inner { padding-top: 80px; }
 }
 @media (max-width: 480px) {
   .lang-grid { grid-template-columns: repeat(2, 1fr); }
 }
+/* ===== PROJECT CAROUSEL EXTRAS ===== */
+.projects-grid {
+  scroll-behavior: auto; /* JS controls scrollLeft directly */
+}
+.carousel-hint {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--slate);
+  margin-top: 12px;
+  text-align: center;
+}
+
+/* ===== PROJECT LINKS ===== */
+.project-link {
+  display: inline-block;
+  margin-top: 14px;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(91,76,245,0.3);
+  padding-bottom: 1px;
+  transition: color 0.2s, border-color 0.2s;
+}
+.project-link:hover { color: var(--accent-2); border-color: var(--accent-2); }
+.inline-link { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(91,76,245,0.3); transition: color 0.2s; }
+.inline-link:hover { color: var(--accent-2); }
